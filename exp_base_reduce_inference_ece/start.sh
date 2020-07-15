@@ -69,7 +69,7 @@ gen(){
     ITE=$2
     mkdir -p $TEMP_PATH/ite$ITE
     cp $TEMP_PATH/valid.* $TEMP_PATH/ite$ITE
-    cp $TEMP_PATH/train.$SRC.rpt $TEMP_PATH/ite$ITE/train.$SRC
+    cp $TEMP_PATH/train.$SRC.rpt4 $TEMP_PATH/ite$ITE/train.$SRC
     CHECKPOINT=$CHECKPOINT_DIR/$CP
     for SUBSET in train;do
         echo "Translating $SUBSET.$TGT @ iteration$ITE"
@@ -88,7 +88,7 @@ gen(){
           > $GEN.$TGT.gen
         grep ^H $GEN.$TGT.gen | python3 $CALI/sorted_cut_fairseq_gen.py 2 > $GEN.$TGT
         echo "TER labeling $SUBSET.$TGT @ iteration$ITE"
-        ter $TEMP_PATH/train.$TGT.rpt $GEN.$TGT
+        ter $TEMP_PATH/train.$TGT.rpt4 $GEN.$TGT
     done
     echo "Binarizing @ iteration$ITE"
     python3 $DISK_CODE/preprocess.py --source-lang $SRC --target-lang $TGT \
