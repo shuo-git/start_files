@@ -45,7 +45,7 @@ echo 'Copying pretrained checkpoint'
 RESTORE=$DISK2/exp/wmt14_en_de_stanford_base/avg_last_10.pt
 cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
 
-def ter(){
+ter(){
     # usage: ter ref hyp
     ref=$1
     hyp=$2
@@ -63,7 +63,7 @@ def ter(){
     mv ${hyp}.shifted.label.sb ${hyp}.TER
 }
 
-def gen(){
+gen(){
     # usage: gen checkpoint iteration
     CP=$1
     ITE=$2
@@ -97,7 +97,7 @@ def gen(){
         --srcdict $SRC_VOCAB --tgtdict $TGT_VOCAB
 }
 
-def train(){
+train(){
     # usage: train iteration
     ITE=$1
     k=5
