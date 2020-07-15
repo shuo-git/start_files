@@ -85,6 +85,9 @@ gen(){
           --beam 4 \
           --nbest 4 \
           --max-tokens 8192 \
+          --decoding-path $DECODE_PATH \
+          --num-ref $DATASET=1 \
+          --valid-decoding-path $DECODE_PATH \
           > $GEN.$TGT.gen
         grep ^H $GEN.$TGT.gen | python3 $CALI/sorted_cut_fairseq_gen.py 2 > $GEN.$TGT
         echo "TER labeling $SUBSET.$TGT @ iteration$ITE"
@@ -112,6 +115,7 @@ train(){
       -s $SRC -t $TGT \
       --save-dir $CHECKPOINT_DIR \
       --restore-file checkpoint_last.pt ${reset} \
+      --load-TER \
       --lr 0.0001 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
       --max-sentences 160 \
