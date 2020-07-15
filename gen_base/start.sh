@@ -28,7 +28,7 @@ mkdir -p $DECODE_PATH
 #   --num-update-checkpoints $N
 # done
 
-for beam in 4;do
+for beam in 1 10 100;do
 for step in checkpoint1 checkpoint2 checkpoint3 checkpoint_last;do
 echo ${step}
 CP=${step}.pt
@@ -45,7 +45,7 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   --gen-subset $SUBSET \
   --lenpen 0.6 \
   --beam ${beam} \
-  --max-sentences 128 \
+  --max-sentences 20 \
   > $DECODE_PATH/${GEN}
 
 sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN}
