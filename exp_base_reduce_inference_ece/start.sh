@@ -85,9 +85,6 @@ gen(){
           --beam 4 \
           --nbest 4 \
           --max-tokens 8192 \
-          --decoding-path $DECODE_PATH \
-          --num-ref $DATASET=1 \
-          --valid-decoding-path $DECODE_PATH \
           > $GEN.$TGT.gen
         grep ^H $GEN.$TGT.gen | python3 $CALI/sorted_cut_fairseq_gen.py 2 > $GEN.$TGT
         echo "TER labeling $SUBSET.$TGT @ iteration$ITE"
