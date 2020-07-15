@@ -18,7 +18,7 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-EXP=${DATA}_base
+EXP=${DATA}_base_reduce_inference_ece-1
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -28,8 +28,8 @@ mkdir -p $DECODE_PATH
 #   --num-update-checkpoints $N
 # done
 
-for beam in 1;do
-for step in avg_last_10;do
+for beam in 4;do
+for step in checkpoint1 checkpoint2 checkpoint3 checkpoint_last;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
@@ -45,11 +45,7 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   --gen-subset $SUBSET \
   --lenpen 0.6 \
   --beam ${beam} \
-  --max-sentences 2 \
-  --decoding-path $DECODE_PATH \
-  --num-ref $DATASET=1 \
-  --multi-bleu-path $DISK_CODE/scripts/ \
-  --valid-decoding-path $DECODE_PATH \
+  --max-sentences 128 \
   > $DECODE_PATH/${GEN}
 
 sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN}
