@@ -20,7 +20,7 @@ if [ $? != 0 ]; then
 fi
 
 DATA=wmt14_en_de_stanford_devtest
-EXP=wmt14_en_de_stanford_base_reduce_inference_ece-3
+EXP=wmt14_en_de_stanford_base_reduce_inference_ece-4
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
 TER=$DISK1/tools/tercom-0.7.25
@@ -106,7 +106,7 @@ train(){
     then
         reset="--reset-dataloader --reset-lr-scheduler --reset-meters --reset-optimizer"
     else
-        reset="--reset-dataloader"
+        reset=" "
     fi
     CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $TEMP_PATH/ite$ITE/data-bin \
       -s $SRC -t $TGT \
