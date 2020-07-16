@@ -140,7 +140,7 @@ train(){
       |& tee $LOG_PATH/train$ITE.log
 }
 
-for ITE in {1..9};do
+for ITE in {1..15};do
     gen checkpoint_last.pt $ITE
     train $ITE
 done
