@@ -20,7 +20,7 @@ if [ $? != 0 ]; then
 fi
 
 DATA=wmt14_en_de_stanford_devtest
-EXP=wmt14_en_de_stanford_base_reduce_inference_ece-10
+EXP=wmt14_en_de_stanford_base_reduce_inference_ece-11
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
 TER=$DISK1/tools/tercom-0.7.25
@@ -100,7 +100,7 @@ gen(){
 train(){
     # usage: train iteration
     ITE=$1
-    k=3
+    k=5
     ((max_update=ITE*k))
     if [ "$ITE" = "1" ]
     then
