@@ -115,8 +115,8 @@ train(){
       --load-TER \
       --lr 0.0001 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
-      --max-sentences 160 \
-      --update-freq 20 \
+      --max-sentences 100 \
+      --update-freq 32 \
       --arch transformer \
       --optimizer adam --adam-betas '(0.9, 0.98)' \
       --tensorboard-logdir $LOG_PATH \
