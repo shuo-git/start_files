@@ -106,7 +106,7 @@ train(){
     then
         reset="--reset-dataloader --reset-lr-scheduler --reset-meters --reset-optimizer"
     else
-        reset=" "
+        reset="--reset-dataloader"
     fi
     CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $TEMP_PATH/ite$ITE/data-bin \
       -s $SRC -t $TGT \
