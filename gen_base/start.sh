@@ -29,7 +29,7 @@ mkdir -p $DECODE_PATH
 # done
 
 for beam in 4;do
-for step in ${1..9};do
+for step in {1..9};do
 echo ${step}
 CP=checkpoint${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
