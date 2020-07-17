@@ -20,7 +20,7 @@ if [ $? != 0 ]; then
 fi
 
 DATA=wmt14_en_de_stanford_devtest
-EXP=wmt14_en_de_stanford_base_reduce_inference_ece-18
+EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
 TER=$DISK1/tools/tercom-0.7.25
@@ -102,7 +102,7 @@ gen(){
 train(){
     # usage: train iteration
     ITE=$1
-    k=3
+    k=2
     ((max_update=ITE*k))
     if [ "$ITE" = "1" ]
     then
@@ -123,7 +123,7 @@ train(){
       --optimizer adam --adam-betas '(0.9, 0.98)' \
       --tensorboard-logdir $LOG_PATH \
       --criterion label_smoothed_cross_entropy_inference_ece \
-      --label-smoothing 0.0 --num-bins 20 --ece-scale 10.0 --ece-alpha 0.0 \
+      --label-smoothing 0.0 --num-bins 20 --ece-scale 20.0 --ece-alpha 0.8 \
       --wrong-token-weight 0.0 \
       --no-progress-bar \
       --log-format simple \
@@ -144,7 +144,7 @@ train(){
 
 eval(){
     for beam in 4;do
-        for step in {1..9};do
+        for step in {1..10};do
             echo ${step}
             CP=checkpoint${step}.pt
             CHECKPOINT=$CHECKPOINT_DIR/$CP
@@ -169,26 +169,11 @@ eval(){
     done
 }
 
-for ITE in {1..3};do
+for ITE in {1..5};do
     gen checkpoint_last.pt $ITE
     train $ITE
 done
 
 eval
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
