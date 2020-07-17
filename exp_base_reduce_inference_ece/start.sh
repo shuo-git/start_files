@@ -20,10 +20,11 @@ if [ $? != 0 ]; then
 fi
 
 DATA=wmt14_en_de_stanford_devtest
-EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19-3
+EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19-4
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
 TER=$DISK1/tools/tercom-0.7.25
+RPT=1
 
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
@@ -37,8 +38,8 @@ TEMP_PATH=$DISK2/results/$EXP/temp
 mkdir -p $TEMP_PATH
 cp $DISK_DATA/$DATA/train.* $TEMP_PATH
 cp $DISK_DATA/$DATA/valid.* $TEMP_PATH
-python3 $CALI/repeat_lines.py $TEMP_PATH/train.$SRC 4
-python3 $CALI/repeat_lines.py $TEMP_PATH/train.$TGT 4
+python3 $CALI/repeat_lines.py $TEMP_PATH/train.$SRC $RPT
+python3 $CALI/repeat_lines.py $TEMP_PATH/train.$TGT $RPT
 
 echo 'Prepare valid data'
 cp -r $DISK_DATA/$DATA/valid.de $OUTPUT_PATH
@@ -71,7 +72,7 @@ gen(){
     ITE=$2
     mkdir -p $TEMP_PATH/ite$ITE
     cp $TEMP_PATH/valid.* $TEMP_PATH/ite$ITE
-    cp $TEMP_PATH/train.$SRC.rpt4 $TEMP_PATH/ite$ITE/train.$SRC
+    cp $TEMP_PATH/train.$SRC.rpt$RPT $TEMP_PATH/ite$ITE/train.$SRC
     CHECKPOINT=$CHECKPOINT_DIR/$CP
     for SUBSET in train;do
         echo "Translating $SUBSET.$TGT @ iteration$ITE"
@@ -85,12 +86,12 @@ gen(){
           --gen-subset $SUBSET \
           --lenpen 0.6 \
           --beam 4 \
-          --nbest 4 \
+          --nbest $RPT \
           --max-tokens 8192 \
           > $GEN.$TGT.gen
         grep ^H $GEN.$TGT.gen | python3 $CALI/sorted_cut_fairseq_gen.py 2 > $GEN.$TGT
         echo "TER labeling $SUBSET.$TGT @ iteration$ITE"
-        ter $TEMP_PATH/train.$TGT.rpt4 $GEN.$TGT
+        ter $TEMP_PATH/train.$TGT.rpt$RPT $GEN.$TGT
     done
     echo "Binarizing @ iteration$ITE"
     python3 $DISK_CODE/preprocess.py --source-lang $SRC --target-lang $TGT \
@@ -117,8 +118,8 @@ train(){
       --load-TER \
       --lr 0.0001 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
-      --max-sentences 75 \
-      --update-freq 20 \
+      --max-sentences 80 \
+      --update-freq 10 \
       --arch transformer \
       --optimizer adam --adam-betas '(0.9, 0.98)' \
       --tensorboard-logdir $LOG_PATH \
