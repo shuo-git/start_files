@@ -20,11 +20,11 @@ if [ $? != 0 ]; then
 fi
 
 DATA=wmt14_en_de_stanford_devtest
-EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19-4
+EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19-2
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
 TER=$DISK1/tools/tercom-0.7.25
-RPT=1
+RPT=4
 
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
@@ -118,7 +118,7 @@ train(){
       --load-TER \
       --lr 0.0001 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
-      --max-sentences 80 \
+      --max-sentences 75 \
       --update-freq 10 \
       --arch transformer \
       --optimizer adam --adam-betas '(0.9, 0.98)' \
@@ -129,8 +129,8 @@ train(){
       --no-progress-bar \
       --log-format simple \
       --log-interval 1 \
-      --save-interval-updates 10000 \
-      --save-interval 1 \
+      --save-interval-updates 1 \
+      --save-interval 10000 \
       --validate-interval 10000 \
       --max-update ${max_update} \
       --beam 1 \
