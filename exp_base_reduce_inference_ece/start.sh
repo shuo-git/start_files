@@ -31,6 +31,8 @@ OUTPUT_PATH=$DISK2/results/$EXP/evaluation
 mkdir -p $OUTPUT_PATH
 LOG_PATH=$DISK2/results/$EXP/logs
 mkdir -p $LOG_PATH
+DECODE_PATH=$DISK2/results/$EXP/inference
+mkdir -p $DECODE_PATH
 TEMP_PATH=$DISK2/results/$EXP/temp
 mkdir -p $TEMP_PATH
 cp $DISK_DATA/$DATA/train.* $TEMP_PATH
@@ -140,12 +142,39 @@ train(){
       |& tee $LOG_PATH/train$ITE.log
 }
 
+eval(){
+    for beam in 4;do
+        for step in {1..9};do
+            echo ${step}
+            CP=checkpoint${step}.pt
+            CHECKPOINT=$CHECKPOINT_DIR/$CP
+            for SUBSET in valid;do
+                GEN=${SUBSET}_${step}.${beam}.gen
+                echo "Evaluate on $DATA/$SUBSET with $CHECKPOINT"
+                CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
+                  $DISK_DATA/$DATA/data-bin \
+                  --fp16 \
+                  -s $SRC \
+                  -t $TGT \
+                  --path $CHECKPOINT \
+                  --gen-subset $SUBSET \
+                  --lenpen 0.6 \
+                  --beam ${beam} \
+                  --max-sentences 128 \
+                  > $DECODE_PATH/$GEN
+
+                sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/$GEN
+            done
+        done
+    done
+}
+
 for ITE in {1..3};do
     gen checkpoint_last.pt $ITE
     train $ITE
 done
 
-
+eval
 
 
 
