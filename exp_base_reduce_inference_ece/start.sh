@@ -147,7 +147,7 @@ infer(){
     for beam in 4;do
         for step in {1..10};do
             echo ${step}
-            CP=checkpoint${step}.pt
+            CP=checkpoint*${step}.pt
             CHECKPOINT=$CHECKPOINT_DIR/$CP
             for SUBSET in valid;do
                 GEN=${SUBSET}_${step}.${beam}.gen
