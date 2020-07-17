@@ -20,7 +20,7 @@ if [ $? != 0 ]; then
 fi
 
 DATA=wmt14_en_de_stanford_devtest
-EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19-3
+EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19-2-1
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
 TER=$DISK1/tools/tercom-0.7.25
@@ -103,7 +103,7 @@ gen(){
 train(){
     # usage: train iteration
     ITE=$1
-    k=2
+    k=4
     ((max_update=ITE*k))
     if [ "$ITE" = "1" ]
     then
@@ -119,7 +119,7 @@ train(){
       --lr 0.0001 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
       --max-sentences 75 \
-      --update-freq 20 \
+      --update-freq 10 \
       --arch transformer \
       --optimizer adam --adam-betas '(0.9, 0.98)' \
       --tensorboard-logdir $LOG_PATH \
@@ -130,9 +130,9 @@ train(){
       --log-format simple \
       --log-interval 1 \
       --save-interval-updates 1 \
-      --save-interval 10000 \
-      --validate-interval 10000 \
-      --max-update ${max_update} \
+      --save-interval 1 \
+      --validate-interval 1 \
+      --max-epoch $ITE \
       --beam 1 \
       --remove-bpe \
       --quiet \
@@ -145,13 +145,35 @@ train(){
 
 infer(){
     for beam in 4;do
-        for step in {1..10};do
+        for step in {1..15};do
             echo ${step}
-            CP=checkpoint*${step}.pt
+            CP=checkpoint_*${step}.pt
+            echo $CP
             CHECKPOINT=$CHECKPOINT_DIR/$CP
             for SUBSET in valid;do
                 GEN=${SUBSET}_${step}.${beam}.gen
-                echo "Evaluate on $DATA/$SUBSET with $CHECKPOINT"
+                CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
+                  $DISK_DATA/$DATA/data-bin \
+                  --fp16 \
+                  -s $SRC \
+                  -t $TGT \
+                  --path $CHECKPOINT \
+                  --gen-subset $SUBSET \
+                  --lenpen 0.6 \
+                  --beam ${beam} \
+                  --max-sentences 128 \
+                  > $DECODE_PATH/$GEN
+
+                sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/$GEN
+            done
+        done
+        for step in {1..3};do
+            echo ${step}
+            CP=checkpoint${step}.pt
+            echo $CP
+            CHECKPOINT=$CHECKPOINT_DIR/$CP
+            for SUBSET in valid;do
+                GEN=${SUBSET}_${step}.${beam}.gen
                 CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
                   $DISK_DATA/$DATA/data-bin \
                   --fp16 \
@@ -170,7 +192,7 @@ infer(){
     done
 }
 
-for ITE in {1..5};do
+for ITE in {1..3};do
     gen checkpoint_last.pt $ITE
     train $ITE
 done
