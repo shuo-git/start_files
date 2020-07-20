@@ -20,7 +20,7 @@ if [ $? != 0 ]; then
 fi
 
 DATA=wmt14_en_de_stanford_devtest
-EXP=wmt14_en_de_stanford_base_reduce_inference_ece-20-8
+EXP=wmt14_en_de_stanford_base_reduce_inference_ece-19-3
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
 TER=$DISK1/tools/tercom-0.7.25
@@ -118,13 +118,13 @@ train(){
       --load-TER \
       --lr 0.0001 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
-      --max-tokens 1024 \
-      --update-freq 8 \
+      --max-tokens 4096 \
+      --update-freq 2 \
       --arch transformer \
       --optimizer adam --adam-betas '(0.9, 0.98)' \
       --tensorboard-logdir $LOG_PATH \
       --criterion label_smoothed_cross_entropy_inference_ece \
-      --label-smoothing 0.0 --num-bins 20 --ece-scale 20.0 --ece-alpha 0.0 \
+      --label-smoothing 0.0 --num-bins 20 --ece-scale 20.0 --ece-alpha 0.9 \
       --wrong-token-weight 1.0 \
       --no-progress-bar \
       --log-format simple \
