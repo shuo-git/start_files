@@ -18,7 +18,7 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-EXP=${DATA}_base_reduce_inference_ece-20-2
+EXP=${DATA}_base_reduce_inference_ece-20-3
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -36,11 +36,11 @@ else
   bsz=20
 fi
 
-for step in checkpoint8;do
+for step in checkpoint7;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
-for SUBSET in valid test;do
+for SUBSET in test;do
 GEN=${SUBSET}_${step}.${beam}.gen
 echo "Evaluate on $DATA/$SUBSET with $CHECKPOINT"
 CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
