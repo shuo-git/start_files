@@ -40,7 +40,7 @@ fi
 
 echo ${bsz}
 
-for step in checkpoint_best;do
+for step in checkpoint20 checkpoint_21_98000;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
