@@ -15,7 +15,7 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-EXP=${DATA}_base-ls-0
+EXP=${DATA}_base-agls
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
 
@@ -30,6 +30,8 @@ cp -r $DISK_DATA/$DATA/valid.de $DISK_DATA/$DATA/test.de $OUTPUT_PATH
 sed -i -e 's/@@ //g' $OUTPUT_PATH/valid.de
 sed -i -e 's/@@ //g' $OUTPUT_PATH/test.de
 
+RESTORE=$DISK2/exp/wmt14_en_de_stanford_base/checkpoint16.pt
+cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data-bin \
   --fp16 \
@@ -44,9 +46,10 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data
   --warmup-init-lr 1e-07 \
   --warmup-updates 4000 \
   --save-dir $CHECKPOINT_DIR \
+  --restore-file checkpoint_last.pt \
   --tensorboard-logdir $LOG_PATH \
-  --criterion label_smoothed_cross_entropy \
-  --label-smoothing 0.0 \
+  --criterion label_smoothed_cross_entropy_gls \
+  --label-smoothing 0.1 \
   --no-progress-bar \
   --log-format simple \
   --log-interval 100 \
