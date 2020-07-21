@@ -18,7 +18,7 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-EXP=${DATA}_base_reduce_inference_ece-24
+EXP=${DATA}_base_reduce_inference_ece-20-2
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -29,7 +29,7 @@ mkdir -p $DECODE_PATH
 # done
 
 for beam in 100;do
-
+for da in 1.0 0.9 0.8 0.7;do
 if [[ $beam = 4 ]]; then
   bsz=128
 elif [[ $beam = 100 ]]; then
@@ -38,12 +38,12 @@ else
   bsz=2
 fi
 
-for step in checkpoint5;do
+for step in checkpoint8;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
 for SUBSET in test;do
-GEN=${SUBSET}_${step}.${beam}.gen
+GEN=${SUBSET}_${step}.${beam}.${da}.gen
 echo "Evaluate on $DATA/$SUBSET with $CHECKPOINT"
 CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   $DISK_DATA/$DATA/data-bin \
@@ -52,13 +52,13 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   -t de \
   --path $CHECKPOINT \
   --gen-subset $SUBSET \
-  --lenpen 0.6 \
+  --lenpen ${da} \
   --beam ${beam} \
   --max-sentences $bsz \
   > $DECODE_PATH/${GEN}
 
 sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN}
-
+done
 done
 done
 done
