@@ -49,6 +49,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data
   --restore-file checkpoint_last.pt \
   --tensorboard-logdir $LOG_PATH \
   --criterion label_smoothed_cross_entropy_gls \
+  --reset-optimizer \
   --label-smoothing 0.1 \
   --no-progress-bar \
   --log-format simple \
