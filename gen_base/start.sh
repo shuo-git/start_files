@@ -32,8 +32,10 @@ for beam in 100;do
 
 if [[ $beam = 4 ]]; then
   bsz=128
-else
+elif [[ $beam = 100 ]]; then
   bsz=20
+else
+  bsz=2
 fi
 
 for step in checkpoint5;do
