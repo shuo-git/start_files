@@ -38,9 +38,9 @@ else
   bsz=2
 fi
 
-each ${bsz}
+echo ${bsz}
 
-for step in checkpoint22;do
+for step in checkpoint_best;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
