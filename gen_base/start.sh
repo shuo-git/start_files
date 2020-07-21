@@ -18,7 +18,7 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-EXP=${DATA}_base
+EXP=${DATA}_base-ls-0
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -38,6 +38,8 @@ else
   bsz=2
 fi
 
+each ${bsz}
+
 for step in avg_last_10;do
 echo ${step}
 CP=${step}.pt
@@ -54,7 +56,7 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   --gen-subset $SUBSET \
   --lenpen ${da} \
   --beam ${beam} \
-  --max-sentences $bsz \
+  --max-sentences ${bsz} \
   > $DECODE_PATH/${GEN}
 
 sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN}
