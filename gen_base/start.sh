@@ -18,7 +18,7 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-EXP=${DATA}_base-ls-0
+EXP=${DATA}_base-agls
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -28,8 +28,8 @@ mkdir -p $DECODE_PATH
 #   --num-update-checkpoints $N
 # done
 
-for beam in 100 4;do
-for da in 0.5 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5;do
+for beam in 4;do
+for da in 0.6;do
 if [[ $beam = 4 ]]; then
   bsz=128
 elif [[ $beam = 100 ]]; then
@@ -40,7 +40,7 @@ fi
 
 each ${bsz}
 
-for step in avg_last_10;do
+for step in checkpoint22;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
