@@ -22,13 +22,13 @@ EXP=${DATA}_base-agls
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
-# for N in 10;do
-# python3.6 $DISK_CODE/scripts/average_checkpoints.py --inputs $DISK_CKP/$EXP \
-#   --output $DISK_CKP/$EXP/avg_last_${N}.pt \
-#   --num-update-checkpoints $N
-# done
+for N in 3;do
+python3.6 $DISK_CODE/scripts/average_checkpoints.py --inputs $DISK_CKP/$EXP \
+  --output $DISK_CKP/$EXP/avg_last_${N}.pt \
+  --num-update-checkpoints $N
+done
 
-for beam in 4;do
+for beam in 4 100;do
 for da in 0.6;do
 if [[ $beam = 4 ]]; then
   bsz=128
@@ -40,7 +40,7 @@ fi
 
 echo ${bsz}
 
-for step in checkpoint20 checkpoint_21_98000;do
+for step in avg_last_3;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
