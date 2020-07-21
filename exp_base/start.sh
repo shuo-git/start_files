@@ -30,8 +30,8 @@ cp -r $DISK_DATA/$DATA/valid.de $DISK_DATA/$DATA/test.de $OUTPUT_PATH
 sed -i -e 's/@@ //g' $OUTPUT_PATH/valid.de
 sed -i -e 's/@@ //g' $OUTPUT_PATH/test.de
 
-RESTORE=$DISK2/exp/wmt14_en_de_stanford_base/checkpoint_best.pt
-cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
+# RESTORE=$DISK2/exp/wmt14_en_de_stanford_base/checkpoint_best.pt
+# cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
 
 CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data-bin \
   --fp16 \
@@ -54,7 +54,7 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data
   --log-format simple \
   --log-interval 100 \
   --save-interval-updates 2000 \
-  --max-update 100000 \
+  --max-update 120000 \
   --beam 1 \
   --remove-bpe \
   --quiet \
