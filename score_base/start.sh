@@ -35,6 +35,7 @@ for SUBSET in test;do
 CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/force_decode.py $DISK_DATA/$DATA/data-bin \
   --fp16 \
   -s en -t de \
+  --reset-optimizer \
   --lr 0.0007 --min-lr 1e-09 \
   --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
   --max-tokens 8192 \
