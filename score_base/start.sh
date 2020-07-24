@@ -15,7 +15,7 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-EXP=${DATA}_base_reduce_inference_ece-20-3
+EXP=${DATA}_base_reduce_inference_ece-24
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
 
@@ -27,7 +27,7 @@ mkdir -p $LOG_PATH
 SCORE_PATH=$DISK2/results/$EXP/score
 mkdir -p $SCORE_PATH
 
-for step in checkpoint7;do
+for step in checkpoint5;do
 
 CHECKFILE=$CHECKPOINT_DIR/${step}.pt
 for SUBSET in test;do
