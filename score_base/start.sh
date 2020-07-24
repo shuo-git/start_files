@@ -15,7 +15,7 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-EXP=${DATA}_base-agls
+EXP=${DATA}_base-ls-0
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
 
