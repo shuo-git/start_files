@@ -18,17 +18,17 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-EXP=${DATA}_base-agls
+EXP=${DATA}_base_reduce_inference_ece-20-7
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
-for N in 10;do
-python3.6 $DISK_CODE/scripts/average_checkpoints.py --inputs $DISK_CKP/$EXP \
-  --output $DISK_CKP/$EXP/avg_last_${N}.pt \
-  --num-update-checkpoints $N
-done
+# for N in 10;do
+# python3.6 $DISK_CODE/scripts/average_checkpoints.py --inputs $DISK_CKP/$EXP \
+#   --output $DISK_CKP/$EXP/avg_last_${N}.pt \
+#   --num-update-checkpoints $N
+# done
 
-for beam in 4 100;do
+for beam in 100;do
 for da in 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2;do
 if [[ $beam = 4 ]]; then
   bsz=128
@@ -40,7 +40,7 @@ fi
 
 echo ${bsz}
 
-for step in avg_last_10;do
+for step in checkpoint8;do
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
