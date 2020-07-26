@@ -15,7 +15,7 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-EXP=${DATA}_base-agls
+EXP=${DATA}_base-ls-2
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
 
@@ -46,15 +46,14 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data
   --warmup-init-lr 1e-07 \
   --warmup-updates 4000 \
   --save-dir $CHECKPOINT_DIR \
-  --restore-file checkpoint_last.pt \
   --tensorboard-logdir $LOG_PATH \
   --criterion label_smoothed_cross_entropy \
-  --label-smoothing 0.1 \
+  --label-smoothing 0.2 \
   --no-progress-bar \
   --log-format simple \
-  --log-interval 100 \
+  --log-interval 1 \
   --save-interval-updates 2000 \
-  --max-update 120000 \
+  --max-update 100000 \
   --beam 1 \
   --remove-bpe \
   --quiet \
