@@ -28,7 +28,7 @@ mkdir -p $DECODE_PATH
 #   --num-update-checkpoints $N
 # done
 
-for beam in 4;do
+for beam in 100;do
 for da in 0.6;do
 for t in 1.05 1.1 1.15 1.2 1.25 1.3 1.35 1.4 1.45 1.5;do
 if [[ $beam = 4 ]]; then
