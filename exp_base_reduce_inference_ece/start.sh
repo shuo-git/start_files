@@ -116,7 +116,7 @@ train(){
       --save-dir $CHECKPOINT_DIR \
       --restore-file checkpoint_last.pt ${reset} \
       --load-TER \
-      --lr 0.0001 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
+      --lr 0.01 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
       --max-tokens 4096 \
       --update-freq 2 \
