@@ -15,8 +15,8 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-
-EXP=${DATA}_base-ls-0
+for exp_i in 1 6 9;do
+EXP=${DATA}_base_reduce_ece-${exp_i}
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
 
@@ -28,12 +28,10 @@ mkdir -p $LOG_PATH
 SCORE_PATH=$DISK2/results/$EXP/score
 mkdir -p $SCORE_PATH
 
-for step in avg_last_10;do
+for step in checkpoint1;do
 
 CHECKFILE=$CHECKPOINT_DIR/${step}.pt
 for SUBSET in test;do
-for cri_t in 1.1 1.2 1.3 1.4 1.5;do
-mkdir $SCORE_PATH/${cri_t}
 
 CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/force_decode.py $DISK_DATA/$DATA/data-bin \
   --fp16 \
@@ -52,7 +50,6 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/force_decode.py $DISK_DATA/$DATA/dat
   --tensorboard-logdir $LOG_PATH \
   --criterion label_smoothed_cross_entropy \
   --label-smoothing 0.1 \
-  --criterion-temperature ${cri_t} \
   --no-progress-bar \
   --log-format simple \
   --log-interval 100 \
@@ -64,7 +61,7 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/force_decode.py $DISK_DATA/$DATA/dat
   --num-ref $DATA=1 \
   --valid-decoding-path $OUTPUT_PATH \
   --multi-bleu-path $DISK_CODE/scripts \
-  --results-path $SCORE_PATH/${cri_t} \
+  --results-path $SCORE_PATH \
   --restore-file $CHECKFILE \
   --valid-subset $SUBSET \
   --skip-invalid-size-inputs-valid-test \
