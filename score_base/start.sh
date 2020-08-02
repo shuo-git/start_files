@@ -15,8 +15,8 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-for exp_i in 1 6 9;do
-EXP=${DATA}_base_reduce_ece-${exp_i}
+for exp_i in 20-7 20-2 20-3;do
+EXP=${DATA}_base_reduce_inference_ece-${exp_i}
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
 
@@ -28,7 +28,13 @@ mkdir -p $LOG_PATH
 SCORE_PATH=$DISK2/results/$EXP/score
 mkdir -p $SCORE_PATH
 
-for step in checkpoint1;do
+if [[ "${exp_i}" = "20-7" ]]; then
+  step=checkpoint1
+elif [[ "${exp_i}" = "20-2" ]]; then
+  step=checkpoint8
+elif [[ "${exp_i}" = "20-3" ]]; then
+  step=checkpoint7
+fi
 
 CHECKFILE=$CHECKPOINT_DIR/${step}.pt
 for SUBSET in test;do
@@ -68,6 +74,5 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/force_decode.py $DISK_DATA/$DATA/dat
   --no-load-trainer-data \
   --no-bleu-eval
 
-done
 done
 done
