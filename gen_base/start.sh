@@ -62,7 +62,7 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   --temperature ${t} \
   > $DECODE_PATH/${GEN}
 
-sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN} > ${GEN}.bleu
+sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN} > $DECODE_PATH/${GEN}.bleu
 done
 done
 done
