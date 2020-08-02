@@ -18,19 +18,19 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-for exp_i in 2 3 4 5 6;do
+for exp_i in 0 2 3 4 5 6;do
 EXP=${DATA}_base-ls-${exp_i}
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
-for N in 10;do
-python3.6 $DISK_CODE/scripts/average_checkpoints.py --inputs $DISK_CKP/$EXP \
-  --output $DISK_CKP/$EXP/avg_last_${N}.pt \
-  --num-update-checkpoints $N
-done
+# for N in 10;do
+# python3.6 $DISK_CODE/scripts/average_checkpoints.py --inputs $DISK_CKP/$EXP \
+#   --output $DISK_CKP/$EXP/avg_last_${N}.pt \
+#   --num-update-checkpoints $N
+# done
 
 for beam in 4 100;do
-for da in 0.6 1.0;do
+for da in 0.0 1.0;do
 for t in 1.0;do
 if [[ $beam = 4 ]]; then
   bsz=128
@@ -62,7 +62,7 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   --temperature ${t} \
   > $DECODE_PATH/${GEN}
 
-sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN}
+sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN} > ${GEN}.bleu
 done
 done
 done
