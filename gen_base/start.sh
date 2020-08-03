@@ -29,10 +29,12 @@ mkdir -p $DECODE_PATH
 #   --num-update-checkpoints $N
 # done
 
-for beam in 4 100;do
+for beam in 1;do
 for da in 0.0 1.0;do
 for t in 1.0;do
-if [[ $beam = 4 ]]; then
+if [[ $beam = 1 ]]; then
+  bsz=512
+elif [[ $beam = 4 ]]; then
   bsz=128
 elif [[ $beam = 100 ]]; then
   bsz=20
