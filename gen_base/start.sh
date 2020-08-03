@@ -18,8 +18,7 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-for exp_i in 0 2 3 4 5 6;do
-EXP=${DATA}_base-ls-${exp_i}
+EXP=${DATA}_base
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -72,7 +71,6 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   > $DECODE_PATH/${GEN}
 
 sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN} > $DECODE_PATH/${GEN}.bleu
-done
 done
 done
 done
