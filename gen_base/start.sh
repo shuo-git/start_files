@@ -18,8 +18,8 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-for exp_i in 20-7 20-2 20-3;do
-EXP=${DATA}_base_reduce_inference_ece-${exp_i}
+for exp_i in 1 6 9;do
+EXP=${DATA}_base_reduce_ece-${exp_i}
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -44,13 +44,14 @@ fi
 
 echo ${bsz}
 
-if [[ "${exp_i}" = "20-7" ]]; then
-  step=checkpoint1
-elif [[ "${exp_i}" = "20-2" ]]; then
-  step=checkpoint8
-elif [[ "${exp_i}" = "20-3" ]]; then
-  step=checkpoint7
-fi
+# if [[ "${exp_i}" = "20-7" ]]; then
+#   step=checkpoint1
+# elif [[ "${exp_i}" = "20-2" ]]; then
+#   step=checkpoint8
+# elif [[ "${exp_i}" = "20-3" ]]; then
+#   step=checkpoint7
+# fi
+step=checkpoint1
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
