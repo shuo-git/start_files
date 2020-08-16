@@ -1,2 +1,3 @@
 *.zip
 .DS_Store
+debug_single_gpu
