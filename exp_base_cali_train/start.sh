@@ -5,7 +5,7 @@ export PYTHONIOENCODING=UTF-8
 DISK1=/apdcephfs/private_vinceswang
 DISK_DATA=$DISK1/DATASET
 DISK_CODE=$DISK1/code/fairseq-T
-DATA=wmt14_en_de_stanford_sampled/complement100w
+DATA=wmt14_en_de_stanford
 
 pip list | grep fairseq
 if [ $? != 0 ]; then
@@ -15,7 +15,13 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-EXP=wmt14-en-de/base-heldout100w
+ALPHA=1.0
+BETA=0.25
+SR=0.0
+MP=0.7
+GRAM=1t4
+EXP=wmt14-en-de/cali-train/mse-a$ALPHA-b$BETA-sr$SR-mp$MP-gram$GRAM
+#EXP=wmt14-en-de/cali-train/baseline
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
 
@@ -27,19 +33,17 @@ mkdir -p $LOG_PATH
 
 echo 'Prepare valid data'
 cp -r $DISK_DATA/$DATA/valid.de $DISK_DATA/$DATA/test.de $OUTPUT_PATH
-sed -i -e 's/@@ //g' $OUTPUT_PATH/valid.de
-sed -i -e 's/@@ //g' $OUTPUT_PATH/test.de
 
-# RESTORE=$DISK2/exp/wmt14_en_de_stanford_base/checkpoint_best.pt
-# cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
+RESTORE=$DISK2/exp/wmt14-en-de/wmt14_en_de_stanford_base/checkpoint_last.pt
+cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
 
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data-bin \
+CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data-bin \
   --fp16 \
   -s en -t de \
   --lr 0.0007 --min-lr 1e-09 \
   --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
-  --max-tokens 8192 \
-  --update-freq 1 \
+  --max-tokens 1024 \
+  --update-freq 4 \
   --arch transformer \
   --optimizer adam --adam-betas '(0.9, 0.98)' \
   --lr-scheduler inverse_sqrt \
@@ -48,21 +52,12 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data
   --save-dir $CHECKPOINT_DIR \
   --tensorboard-logdir $LOG_PATH \
   --criterion label_smoothed_cross_entropy \
-  --label-smoothing 0.1 \
-  --no-progress-bar \
-  --log-format simple \
-  --log-interval 1 \
-  --save-interval-updates 2000 \
-  --keep-interval-updates 10 \
-  --max-update 100000 \
-  --beam 1 \
-  --remove-bpe \
-  --quiet \
+  --eps-pos 0.1 --eps-neg 0.7 --calibration-loss --mse-loss --shift-reg-weight $SR --mean-prob $MP \
+  --alpha $ALPHA --beta $BETA --gram1 --gram2 --gram3 --gram4 \
+  --no-progress-bar --log-format simple --log-interval 1 --quiet \
+  --save-interval-updates 500 --keep-interval-updates 1000 \
+  --max-update 200000 \
+  --nbest 1 --beam 1 --lenpen 1.0  \
   --all-gather-list-size 522240 \
-  --num-ref $DATA=1 \
-  --valid-decoding-path $OUTPUT_PATH \
-  --multi-bleu-path $DISK_CODE/scripts/ \
+  --bleu-eval --valid-decoding-path $OUTPUT_PATH --multi-bleu-path $DISK_CODE/scripts \
   |& tee $LOG_PATH/train.log
-# --keep-interval-updates
-# --keep-last-epochs
-# --max-epoch

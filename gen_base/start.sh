@@ -7,6 +7,7 @@ DISK1=/apdcephfs/private_vinceswang
 DISK_DATA=$DISK1/DATASET
 DISK_CODE=$DISK1/code/fairseq-T
 DATA=wmt14_en_de_stanford
+CALI=$DISK1/code/Cali-Ana
 
 pip list | grep fairseq
 if [ $? != 0 ]; then
@@ -18,7 +19,10 @@ fi
 DISK2=/apdcephfs/share_916081/vinceswang
 DISK_CKP=$DISK2/exp
 DISK_RESULTS=$DISK2/results
-EXP=${DATA}_base
+EXP=wmt14-en-de/base-cali-train-1
+
+da=1.0
+t=1.0
 DECODE_PATH=$DISK_RESULTS/$EXP/inference
 mkdir -p $DECODE_PATH
 
@@ -28,9 +32,7 @@ mkdir -p $DECODE_PATH
 #   --num-update-checkpoints $N
 # done
 
-for beam in 1;do
-for da in 0.0 1.0;do
-for t in 1.0;do
+for beam in 1 4;do
 if [[ $beam = 1 ]]; then
   bsz=512
 elif [[ $beam = 4 ]]; then
@@ -50,12 +52,16 @@ echo ${bsz}
 # elif [[ "${exp_i}" = "20-3" ]]; then
 #   step=checkpoint7
 # fi
-step=avg_last_10
+#for step in {1..10};do
+step=checkpoint_last
 echo ${step}
 CP=${step}.pt
 CHECKPOINT=$DISK_CKP/$EXP/$CP
-for SUBSET in test;do
-GEN=${SUBSET}_${step}.${beam}.${da}.${t}.gen
+for SUBSET in valid test;do
+#if [[ $beam = 4 ]] && [[ "$SUBSET" = "test" ]]; then
+#    continue
+#fi
+GEN=${SUBSET}_${step}.${beam}.gen
 echo "Evaluate on $DATA/$SUBSET with $CHECKPOINT"
 CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   $DISK_DATA/$DATA/data-bin \
@@ -66,12 +72,13 @@ CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
   --gen-subset $SUBSET \
   --lenpen ${da} \
   --beam ${beam} \
+  --nbest 1 \
   --max-sentences ${bsz} \
   --temperature ${t} \
   > $DECODE_PATH/${GEN}
 
-sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN} > $DECODE_PATH/${GEN}.bleu
-done
-done
+sh $DISK_CODE/scripts/compound_split_bleu.sh $DECODE_PATH/${GEN} | tee $DECODE_PATH/${GEN}.bleu
+
+#grep ^H $DECODE_PATH/${GEN} | python3 $CALI/sorted_cut_fairseq_gen.py 2 > $DECODE_PATH/${GEN}.${beam}-best
 done
 done

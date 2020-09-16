@@ -4,8 +4,8 @@ export PYTHONIOENCODING=UTF-8
 
 DISK1=/apdcephfs/private_vinceswang
 DISK_DATA=$DISK1/DATASET
-DISK_CODE=$DISK1/code/fairseq-T
-DATA=wmt14_en_de_stanford_sampled/complement100w
+DISK_CODE=$DISK1/code/fairseq-T-bak
+DATA=wmt14_en_de_stanford_sampled/100w
 
 pip list | grep fairseq
 if [ $? != 0 ]; then
@@ -15,29 +15,25 @@ if [ $? != 0 ]; then
 fi
 
 DISK2=/apdcephfs/share_916081/vinceswang
-EXP=wmt14-en-de/base-heldout100w
+EXP=wmt14-en-de/wmt14_en_de_stanford_base
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
-
 OUTPUT_PATH=$DISK2/results/$EXP/evaluation
 LOG_PATH=$DISK2/results/$EXP/logs
-
 mkdir -p $OUTPUT_PATH
 mkdir -p $LOG_PATH
+SCORE_PATH=$DISK2/results/$EXP/score
+mkdir -p $SCORE_PATH
 
-echo 'Prepare valid data'
-cp -r $DISK_DATA/$DATA/valid.de $DISK_DATA/$DATA/test.de $OUTPUT_PATH
-sed -i -e 's/@@ //g' $OUTPUT_PATH/valid.de
-sed -i -e 's/@@ //g' $OUTPUT_PATH/test.de
+CHECKFILE=$CHECKPOINT_DIR/avg_last_10.pt
+SUBSET=train
 
-# RESTORE=$DISK2/exp/wmt14_en_de_stanford_base/checkpoint_best.pt
-# cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
-
-CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data-bin \
+CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/force_decode.py $DISK_DATA/$DATA/data-bin \
   --fp16 \
   -s en -t de \
+  --reset-optimizer \
   --lr 0.0007 --min-lr 1e-09 \
-  --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
+  --weight-decay 0.0 --clip-norm 0.0 --dropout 0.0 \
   --max-tokens 8192 \
   --update-freq 1 \
   --arch transformer \
@@ -51,18 +47,18 @@ CUDA_VISIBLE_DEVICES=0,1,2,3 python3.6 $DISK_CODE/train.py $DISK_DATA/$DATA/data
   --label-smoothing 0.1 \
   --no-progress-bar \
   --log-format simple \
-  --log-interval 1 \
+  --log-interval 100 \
   --save-interval-updates 2000 \
-  --keep-interval-updates 10 \
   --max-update 100000 \
   --beam 1 \
-  --remove-bpe \
   --quiet \
-  --all-gather-list-size 522240 \
+  --all-gather-list-size 5222400 \
   --num-ref $DATA=1 \
   --valid-decoding-path $OUTPUT_PATH \
-  --multi-bleu-path $DISK_CODE/scripts/ \
-  |& tee $LOG_PATH/train.log
-# --keep-interval-updates
-# --keep-last-epochs
-# --max-epoch
+  --multi-bleu-path $DISK_CODE/scripts \
+  --results-path $SCORE_PATH \
+  --restore-file $CHECKFILE \
+  --valid-subset $SUBSET \
+  --skip-invalid-size-inputs-valid-test \
+  --no-load-trainer-data \
+  --no-bleu-eval

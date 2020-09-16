@@ -19,26 +19,11 @@ if [ $? != 0 ]; then
   pip install --editable .
 fi
 
-ALPHA=1.0
-SCALE=1.0
-WLW=0.1
-ER=0.0
-SR=0.0
-MP=1.0
-#for ALPHA in 0.0 0.2 0.4 0.6 0.8 1.0;do
-#for SCALE in 2.0 4.0 8.0 16.0 20.0;do
-for WLW in 0.0;do
-#for ER in 0.5 1.0 2.0;do
-#for MP in 0.70 0.75 0.80 0.85 0.90 0.95 1.0;do
 DATA=wmt14_en_de_stanford_sampled/10w/split10
 DATAORG=wmt14_en_de_stanford
-EXP=wmt14-en-de/reduce-inference-ece/on-heldout/exp-re-a$ALPHA-s$SCALE-wlw$WLW-er$ER-sr$SR-mp$MP-nll
+EXP=wmt14-en-de/event_pooled_calibration/on-heldout/exp-eos-keep-2.1
 CALI=$DISK1/code/Cali-Ana
 InfECE=$DISK1/code/InfECE
-TER=$DISK1/tools/tercom-0.7.25
-RPT=4
-#SUFFIX=".rpt$RPT"
-SUFFIX=""
 
 CHECKPOINT_DIR=$DISK2/exp/$EXP
 mkdir -p $CHECKPOINT_DIR
@@ -50,12 +35,9 @@ DECODE_PATH=$DISK2/results/$EXP/inference
 mkdir -p $DECODE_PATH
 TEMP_PATH=$DISK2/results/$EXP/temp
 mkdir -p $TEMP_PATH
-#cp $DISK_DATA/$DATA/train.* $TEMP_PATH
-#cp $DISK_DATA/$DATA/valid.* $TEMP_PATH
-#python3 $CALI/repeat_lines.py $TEMP_PATH/train.$SRC $RPT
-#python3 $CALI/repeat_lines.py $TEMP_PATH/train.$TGT $RPT
+#cp $DISK_DATA/$DATA/* $TEMP_PATH
 
-echo 'Prepare valid data'
+echo 'Prepare valid and test data'
 cp -r $DISK_DATA/$DATA/valid.de $OUTPUT_PATH
 cp -r $DISK_DATA/$DATA/test.de $OUTPUT_PATH
 sed -i -e 's/@@ //g' $OUTPUT_PATH/valid.de $OUTPUT_PATH/test.de
@@ -63,22 +45,11 @@ echo 'Copying pretrained checkpoint'
 RESTORE=$DISK2/exp/wmt14-en-de/base-heldout10w/avg_last_10.pt
 cp ${RESTORE} $CHECKPOINT_DIR/checkpoint_last.pt
 
-ter(){
-    # usage: ter ref hyp
+ngram_label(){
+    # usage: ngram_label reference hypothesis
     ref=$1
     hyp=$2
-    python ${InfECE}/add_sen_id.py ${ref} ${ref}.ref
-    python ${InfECE}/add_sen_id.py ${hyp} ${hyp}.hyp
-
-    java -jar ${TER}/tercom.7.25.jar -r ${ref}.ref -h ${hyp}.hyp -n ${hyp} -s > /dev/null
-
-    python ${InfECE}/parse_xml.py ${hyp}.xml ${hyp}.shifted
-    python ${InfECE}/shift_back.py ${hyp}.shifted.text ${hyp}.shifted.label ${hyp}.pra
-
-    rm ${ref}.ref ${hyp}.hyp ${hyp}.ter ${hyp}.sum ${hyp}.sum_nbest \
-        ${hyp}.pra_more ${hyp}.pra ${hyp}.xml ${hyp}.shifted.text \
-        ${hyp}.shifted.label ${hyp}.shifted.text.sb
-    mv ${hyp}.shifted.label.sb ${hyp}.TER
+    python3 $InfECE/n_gram_label.py --hyp $hyp --ref $ref --n 4 --out_prefix $hyp
 }
 
 gen(){
@@ -92,10 +63,10 @@ gen(){
     CHECKPOINT=$CHECKPOINT_DIR/$CP
     python3 $DISK_CODE/preprocess.py --source-lang $SRC --target-lang $TGT --trainpref $TEMP_PATH/ite$ITE/train.$SPLIT \
         --destdir $TEMP_PATH/ite$ITE/gen-bin --workers 32 --srcdict $SRC_VOCAB --tgtdict $TGT_VOCAB
-    mv $TEMP_PATH/ite$ITE/train.$SPLIT$SUFFIX.$TGT $TEMP_PATH/ite$ITE/train.$SPLIT$SUFFIX.ref.$TGT
+    mv $TEMP_PATH/ite$ITE/train.$SPLIT.$TGT $TEMP_PATH/ite$ITE/train.$SPLIT.ref.$TGT
     for SUBSET in train;do
         echo "Translating $SUBSET.$SPLIT.$SRC @ iteration$ITE"
-        GEN=$TEMP_PATH/ite$ITE/$SUBSET.$SPLIT$SUFFIX
+        GEN=$TEMP_PATH/ite$ITE/$SUBSET.$SPLIT
         CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
           $TEMP_PATH/ite$ITE/gen-bin \
           --fp16 \
@@ -109,13 +80,14 @@ gen(){
           --max-tokens 8192 \
           > $GEN.$TGT.gen
         grep ^H $GEN.$TGT.gen | python3 $CALI/sorted_cut_fairseq_gen.py 2 > $GEN.$TGT
-        echo "Labeling $SUBSET.$SPLIT$SUFFIX.$TGT @ iteration$ITE"
-        ter $TEMP_PATH/ite$ITE/train.$SPLIT$SUFFIX.ref.$TGT $GEN.$TGT
+        echo "Labeling $SUBSET.$SPLIT.$TGT @ iteration$ITE"
+        ngram_label $TEMP_PATH/ite$ITE/train.$SPLIT.ref.$TGT $GEN.$TGT
     done
     echo "Binarizing @ iteration$ITE"
     python3 $DISK_CODE/preprocess.py --source-lang $SRC --target-lang $TGT \
-        --trainpref $TEMP_PATH/ite$ITE/train.$SPLIT$SUFFIX --validpref $TEMP_PATH/ite$ITE/valid \
-        --destdir $TEMP_PATH/ite$ITE/data-bin --workers 32 --TER-suffix TER --ref-suffix ref \
+        --trainpref $TEMP_PATH/ite$ITE/train.$SPLIT --validpref $TEMP_PATH/ite$ITE/valid \
+        --ref-suffix ref --ngram-label-n 4 \
+        --destdir $TEMP_PATH/ite$ITE/data-bin --workers 32 \
         --srcdict $SRC_VOCAB --tgtdict $TGT_VOCAB
 }
 
@@ -134,7 +106,7 @@ train(){
       -s $SRC -t $TGT \
       --save-dir $CHECKPOINT_DIR \
       --restore-file checkpoint_last.pt ${reset} \
-      --load-TER --load-ref \
+      --load-ref --load-ngram-label-n 4 \
       --lr 1e-4 --lr-scheduler fixed --force-anneal 1 --lr-shrink 0.9 \
       --weight-decay 0.0 --clip-norm 0.0 --dropout 0.1 \
       --max-sentences 55 \
@@ -142,8 +114,8 @@ train(){
       --arch transformer \
       --optimizer adam --adam-betas '(0.9, 0.98)' \
       --tensorboard-logdir $LOG_PATH \
-      --criterion label_smoothed_cross_entropy_inference_ece \
-      --label-smoothing 0.0 --ece-alpha $ALPHA --ece-scale $SCALE --forward-ref --wrong-label-weight $WLW --ending-reg-weight $ER --shift-reg-weight $SR --mean-prob $MP \
+      --criterion label_smoothed_cross_entropy_event_pooled_calibration \
+      --label-smoothing 0.0 --gram1 --gram2 --gram3 --gram4 --alpha 1.0 --scale 20.0 --forward-ref \
       --no-progress-bar \
       --log-format simple \
       --log-interval 1 \
@@ -151,7 +123,7 @@ train(){
       --save-interval 1 \
       --validate-interval 1 \
       --max-epoch ${max_epoch} \
-      --beam 4 \
+      --beam 1 \
       --remove-bpe \
       --quiet \
       --all-gather-list-size 9022240 \
@@ -162,7 +134,7 @@ train(){
 }
 
 infer(){
-    for beam in 1 4;do
+    for beam in 4;do
         for step in {1..10};do
             echo ${step}
             CP=checkpoint${step}.pt
@@ -172,7 +144,6 @@ infer(){
                 GEN=${SUBSET}_${step}.${beam}.gen
                 CUDA_VISIBLE_DEVICES=0 python3.6 $DISK_CODE/generate.py \
                   $DISK_DATA/$DATAORG/data-bin \
-                  --fp16 \
                   -s $SRC \
                   -t $TGT \
                   --path $CHECKPOINT \
@@ -196,4 +167,3 @@ done
 infer
 
 
-done
